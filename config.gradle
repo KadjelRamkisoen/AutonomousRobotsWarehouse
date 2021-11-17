@@ -1,0 +1,8 @@
+remotes {
+    ev3dev {
+//        host = '192.168.0.165'  //Tank Bad Girl
+        host = '192.168.0.111'//Offroad Good boy
+        user = 'robot'
+        password = 'maker'
+    }
+}
