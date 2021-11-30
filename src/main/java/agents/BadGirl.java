@@ -1,12 +1,15 @@
 package agents;
 
+import UWB.mqtt.TagMqtt;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 public class BadGirl extends Agent {
-    int[] path = new int[]{1, 1, 1, 1, 3, 3, 1, 1, 1, 1, 4, 4, 2, 2, 2, 2};
+    int[][] path = new int[][]{{5147, 6019}, {5147, 7019}};
     int path_iterator = 0;
+    final TagMqtt tag = new TagMqtt("682E");
 
     OneShotBehaviour go_forward = new OneShotBehaviour() {
         @Override
@@ -73,31 +76,60 @@ public class BadGirl extends Agent {
         }
     };
 
+    public BadGirl() throws MqttException {
+    }
+
     protected void setup() {
 
-        addBehaviour(new TickerBehaviour(this, 1000) {
+        addBehaviour(new TickerBehaviour(this, 100) {
             @Override
             protected void onTick() {
+                removeBehaviour(go_backward);
+                removeBehaviour(go_forward);
+                removeBehaviour(turn_right);
+                removeBehaviour(turn_left);
+
                 if (path_iterator >= path.length) {
                     addBehaviour(stop);
                     stop();
                 } else {
+                    try {
 
-                    if (path[path_iterator] == 1) {
-                        addBehaviour(go_forward);
-                    } else if (path[path_iterator] == 2) {
-                        addBehaviour(go_backward);
-                    } else if (path[path_iterator] == 3) {
-                        addBehaviour(turn_left);
-                    } else if (path[path_iterator] == 4) {
-                        addBehaviour(turn_right);
+                        int x = tag.getSmoothenedLocation(10).x;
+                        int y = tag.getSmoothenedLocation(10).y;
+
+                        if (x != 0 && y != 0) {
+
+                            int target_x = path[path_iterator][0];
+                            int target_y = path[path_iterator][1];
+                            float yaw = (float) Math.toDegrees(tag.yaw);
+
+                            float target_angle = (float) Math.toDegrees(Math.atan2(y - target_y, target_x - x));
+
+                            float diff_angle = target_angle - yaw;
+                            diff_angle = diff_angle % 360;
+                            while (diff_angle < 0) { //pretty sure this comparison is valid for doubles and floats
+                                diff_angle += 360.0;
+                            }
+
+
+                            if (diff_angle > 15 && diff_angle <= 180) {
+                                addBehaviour(turn_right);
+                            } else if (diff_angle < 345 && diff_angle > 180) {
+                                addBehaviour(turn_left);
+                            } else if (Math.abs(target_x - x) > 250 || Math.abs(target_y - y) > 250) {
+                                addBehaviour(go_forward);
+                            } else {
+                                ++path_iterator;
+                            }
+
+                            System.out.println(target_x + ":" + target_y + " - " + tag.getSmoothenedLocation(10));
+                            System.out.println(target_angle + " - " + yaw + " = " + diff_angle);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("exception");
                     }
-
-                    ++path_iterator;
-
                 }
-
-                System.out.println("TICK!!");
 
             }
         });
@@ -153,5 +185,4 @@ public class BadGirl extends Agent {
     }
 
  */
-
 

@@ -1,5 +1,6 @@
 package containers;
 
+
 import agents.Device;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -22,7 +23,7 @@ public class ExampleContainer {
 
             ExampleContainer.start();
 
-            AgentController badGirl = agentContainer.createNewAgent("BadGirl", "Dogs.BadGirl", new Object[]{});
+            AgentController badGirl = agentContainer.createNewAgent("BadGirl", "agents.BadGirl", new Object[]{});
             //AgentController goodBoy = agentContainer.createNewAgent("Good Boy", "Dogs.BadGirl", new Object[]{});
 
             badGirl.start();
@@ -35,4 +36,3 @@ public class ExampleContainer {
         Device.init();
     }
 }
-
